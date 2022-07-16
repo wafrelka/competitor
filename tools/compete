@@ -1,0 +1,22 @@
+#!/bin/sh
+
+set -ue
+
+if [ "$#" -lt 1 ]; then
+    printf "usage: %s <subcommand> <args..>\n" "$0" >&2
+    exit 1
+fi
+
+THIS="$(readlink -f "$0")"
+HERE="$(cd "$(dirname "$THIS")"; pwd)"
+
+subcmd="$1"
+tool="$HERE/compete-$subcmd"
+shift 1;
+
+if [ ! -f "$tool" ]; then
+    printf "subcommand '$subcmd' is not available\n" >&2
+    exit 1
+fi
+
+exec "$tool" "$@"
