@@ -2,21 +2,25 @@
 
 set -ue
 
+error() {
+    printf "%s\n" "$*" >&2
+}
+
 if [ "$#" -lt 1 ]; then
-    printf "usage: %s <subcommand> <args..>\n" "$0" >&2
+    error "usage: $0 <subcommand> <args..>"
     exit 1
 fi
 
-THIS="$(readlink -f "$0")"
-HERE="$(cd "$(dirname "$THIS")"; pwd)"
+HERE="$(dirname "$(readlink -f "$0")")"
+PARENT="$(readlink -f "${HERE}/..")"
 
 subcmd="$1"
-tool="$HERE/compete-$subcmd"
-shift 1;
+tool="${HERE}/compete-${subcmd}"
+shift 1
 
-if [ ! -f "$tool" ]; then
-    printf "subcommand '$subcmd' is not available\n" >&2
+if [ ! -f "${tool}" ]; then
+    error "subcommand '${subcmd}' is not available"
     exit 1
 fi
 
-exec "$tool" "$@"
+COMPETE_ROOT="${PARENT}" exec "${tool}" "$@"

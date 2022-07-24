@@ -1,13 +1,13 @@
-THIS="$(readlink -f "$0")"
-HERE="$(cd "$(dirname "$THIS")"; pwd)"
-PARENT="$(readlink -f "$HERE/..")"
+#!/bin/zsh
+
+HERE="$(dirname "$(readlink -f "$0")")"
+ROOT="$(readlink -f "${HERE}/..")"
 
 local gxx_options=(
-	"--std=c++14" "-O2" "-Wall" "-Wextra" "-Wshadow" "-Wno-unused-result"
-	"-fsanitize=undefined,address"
-	"-DWAFDAYO"
+    "--std=c++14" "-O2" "-Wall" "-Wextra" "-Wshadow" "-Wno-unused-result"
+    "-fsanitize=undefined,address" "-DWAFDAYO"
 )
-export COMPETE_GXX_OPTIONS="$gxx_options"
-alias gxx="g++ $COMPETE_GXX_OPTIONS"
 
-export PATH="$PARENT/tools:$PATH"
+export COMPETE_GXX_OPTIONS="${gxx_options[*]}"
+export PATH="${ROOT}/tools:${PATH}"
+alias gxx="g++ ${COMPETE_GXX_OPTIONS}"

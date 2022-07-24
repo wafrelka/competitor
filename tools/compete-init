@@ -2,11 +2,9 @@
 
 set -ue
 
-THIS="$(readlink -f "$0")"
-HERE="$(cd "$(dirname "$THIS")"; pwd)"
-TEMPLATES="$HERE/../templates"
+TEMPLATES="${COMPETE_ROOT}/templates"
 
 for dest in "$@"; do
-	cp -nv "$TEMPLATES/main.cpp" "$dest"
+    cp -nv "${TEMPLATES}/main.cpp" "${dest}"
 done
-cp -nv "$TEMPLATES/dbg.hpp" "dbg.hpp"
+cp -nv "${TEMPLATES}/dbg.hpp" "dbg.hpp"

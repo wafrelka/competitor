@@ -1,59 +1,63 @@
 #!/bin/bash
 
-set -u
+set -ueo pipefail
 ulimit -c 0
 
-gxx="${GXX:-}"
-if [ -z "$gxx" ]; then
-	gxx="g++ ${COMPETE_GXX_OPTIONS:-}"
-fi
-
-src="$1"
-dest="./${1%.cpp}.bin"
+src="$(readlink -f "$1")"
+dest="${src%.cpp}.bin"
 shift 1
 
-print() {
-    mode="$1"
-    shift 1
-    printf "\e[%sm%s\e[m" "$mode" "$*" >&2
+compile() {
+    if [ -z "${GXX:-}" ]; then
+        local -a options
+        read -ra options <<< "${COMPETE_GXX_OPTIONS:-}"
+        g++ "${options[@]}" "$@"
+    else
+        ${GXX} "$@"
+    fi
 }
-print_log() { print "2" "$*"$'\n'; }
-print_fail() { print "31;1" "$*"$'\n'; }
 
-if [ ! -f "$dest" ] || [ "$src" -nt "$dest" ]; then
-	print_log "[*] compiling..."
-	$gxx "$src" -o "$dest"
-	gxx_ok="$?"
-	if [ "$gxx_ok" -ne "0" ]; then
-		print_fail "[!] compilation failed"
-		exit 1
-	fi
-	print_log "[*] compiled"
+print() {
+    local mode="$1"
+    shift 1
+    printf "\e[%sm%s\e[m" "${mode}" "$*" >&2
+}
+print_log() { print "2" "[*] $*"$'\n'; }
+print_fail() { print "31;1" "[!] $*"$'\n'; }
+
+if [ ! -f "${dest}" ] || [ "${src}" -nt "${dest}" ]; then
+    print_log "compiling..."
+    failed=""
+    compile "${src}" -o "${dest}" || failed="1"
+    if [ -n "${failed}" ]; then
+        print_fail "compilation failed"
+        exit 1
+    fi
+    print_log "compiled"
 else
-	print_log "[*] compilation skipped"
+    print_log "compilation skipped"
 fi
 
 run() {
-	in_file="$1"
-	name="$2"
-	print "1" "[*] testing: "
-	print "4;1" "$name"$'\n'
-	if [ -n "$in_file" ]; then
-		"$dest" < "$in_file"
-		ok="$?"
-	else
-		"$dest"
-		ok="$?"
-	fi
-	if [ "$ok" -ne "0" ]; then
-		print_fail "[!] execution failed"
-	fi
+    name="$1"
+    in_file="${2:-}"
+    failed=""
+    print "1" "[*] testing: "
+    print "4;1" "${name}"$'\n'
+    if [ -n "${in_file}" ]; then
+        "${dest}" < "${in_file}" || failed="1"
+    else
+        "${dest}" || failed="1"
+    fi
+    if [ -n "${failed}" ]; then
+        print_fail "execution failed"
+    fi
 }
 
-if [ "$#" -ne "0" ]; then
-	for in_file in "$@"; do
-		run "$in_file" "$in_file"
-	done
+if [ "$#" -ne 0 ]; then
+    for in_file in "$@"; do
+        run "${in_file}" "${in_file}"
+    done
 else
-	run "" "stdin"
+    run "stdin"
 fi
