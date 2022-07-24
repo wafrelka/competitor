@@ -9,5 +9,5 @@ local gxx_options=(
 )
 
 export COMPETE_GXX_OPTIONS="${gxx_options[*]}"
-export PATH="${ROOT}/tools:${PATH}"
+export PATH="${ROOT}/bin:${PATH}"
 alias gxx="g++ ${COMPETE_GXX_OPTIONS}"
